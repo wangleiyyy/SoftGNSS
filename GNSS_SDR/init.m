@@ -28,7 +28,7 @@
 % $Id: init.m,v 1.14.2.21 2006/08/22 13:46:00 dpl Exp $
 
 %% Clean up the environment first =========================================
-clear; close all; clc;
+% clear; close all; clc;
 
 format ('compact');
 format ('long', 'g');
@@ -53,25 +53,25 @@ fprintf('                   -------------------------------\n\n');
 settings = initSettings();
 
 %% Generate plot of raw data and ask if ready to start processing =========
-try
-    fprintf('Probing data (%s)...\n', settings.fileName)
-    probeData(settings);
-catch
-    % There was an error, print it and exit
-    errStruct = lasterror;
-    disp(errStruct.message);
-    disp('  (run setSettings or change settings in "initSettings.m" to reconfigure)')    
-    return;
-end
+% try
+%     fprintf('Probing data (%s)...\n', settings.fileName)
+%     probeData(settings);
+% catch
+%     % There was an error, print it and exit
+%     errStruct = lasterror;
+%     disp(errStruct.message);
+%     disp('  (run setSettings or change settings in "initSettings.m" to reconfigure)')    
+%     return;
+% end
     
-disp('  Raw IF data plotted ')
-disp('  (run setSettings or change settings in "initSettings.m" to reconfigure)')
-disp(' ');
-gnssStart = input('Enter "1" to initiate GNSS processing or "0" to exit : ');
+% disp('  Raw IF data plotted ')
+% disp('  (run setSettings or change settings in "initSettings.m" to reconfigure)')
+% disp(' ');
+% gnssStart = input('Enter "1" to initiate GNSS processing or "0" to exit : ');
 
-if (gnssStart == 1)
-    disp(' ');
+% if (gnssStart == 1)
+%     disp(' ');
     %start things rolling...
     postProcessing
-end
+% end
 

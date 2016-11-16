@@ -145,7 +145,7 @@ for channelNr = 1:settings.numberOfChannels
         oldCarrError = 0.0;
 
         %=== Process the number of specified code periods =================
-        for loopCnt =  1:codePeriods
+        for loopCnt =  1:codePeriods  %1ms loop
             
 %% GUI update -------------------------------------------------------------
             % The GUI is updated every 50ms. This way Matlab GUI is still
@@ -168,7 +168,7 @@ for channelNr = 1:settings.numberOfChannels
                 end
             end
 
-%% Read next block of data ------------------------------------------------            
+%% Read next block of data 1023sCode ------------------------------------------------            
             % Find the size of a "block" or code period in whole samples
             
             % Update the phasestep based on code freq (variable) and
@@ -178,7 +178,7 @@ for channelNr = 1:settings.numberOfChannels
             blksize = ceil((settings.codeLength-remCodePhase) / codePhaseStep);
             
             % Read in the appropriate number of samples to process this
-            % interation 
+            % interation (1023 Code)
             [rawSignal, samplesRead] = fread(fid, ...
                                              blksize, settings.dataType);
             rawSignal = rawSignal';  %transpose vector

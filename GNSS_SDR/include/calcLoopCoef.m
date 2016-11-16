@@ -37,7 +37,7 @@ function [tau1, tau2] = calcLoopCoef(LBW, zeta, k)
 %CVS record:
 %$Id: calcLoopCoef.m,v 1.1.2.2 2006/08/14 11:38:22 dpl Exp $
 
-% Solve natural frequency
+% Solve natural frequency P91F7.18
 Wn = LBW*8*zeta / (4*zeta.^2 + 1);
 
 % solve for t1 & t2

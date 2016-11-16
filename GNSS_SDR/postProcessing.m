@@ -74,21 +74,21 @@ if (fid > 0)
     if ((settings.skipAcquisition == 0) || ~exist('acqResults', 'var'))
         
         % Find number of samples per spreading code
-        samplesPerCode = round(settings.samplingFreq / ...
+        % samples per 1023 CA chips 
+        samplesPer1023Code = round(settings.samplingFreq / ...
                            (settings.codeFreqBasis / settings.codeLength));
         
         % Read data for acquisition. 11ms of signal are needed for the fine
         % frequency estimation
-        data = fread(fid, 11*samplesPerCode, settings.dataType)';
+        data = fread(fid, 11*samplesPer1023Code, settings.dataType)';
 
         %--- Do the acquisition -------------------------------------------
         disp ('   Acquiring satellites...');
         acqResults = acquisition(data, settings);
 
         plotAcquisition(acqResults);
-    end
-
-%% Initialize channels and prepare for the run ============================
+        
+        %% Initialize channels and prepare for the run ============================
 
     % Start further processing only if a GNSS signal was acquired (the
     % field FREQUENCY will be set to 0 for all not acquired signals)
@@ -119,7 +119,13 @@ if (fid > 0)
     % running the positioning solution afterwards.
     disp('   Saving Acq & Tracking results to file "trackingResults.mat"')
     save('trackingResults', ...
-                      'trackResults', 'settings', 'acqResults', 'channel');                  
+                      'trackResults', 'settings', 'acqResults', 'channel');            
+        
+        
+        
+    end
+
+      
 
 %% Calculate navigation solutions =========================================
     disp('   Calculating navigation solutions...');

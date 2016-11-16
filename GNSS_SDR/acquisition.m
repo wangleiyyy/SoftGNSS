@@ -47,23 +47,23 @@ function acqResults = acquisition(longSignal, settings)
 %% Initialization =========================================================
 
 % Find number of samples per spreading code
-samplesPerCode = round(settings.samplingFreq / ...
+samplesPer1023Code = round(settings.samplingFreq / ...
                         (settings.codeFreqBasis / settings.codeLength));
 
 % Create two 1msec vectors of data to correlate with and one with zero DC
-signal1 = longSignal(1 : samplesPerCode);
-signal2 = longSignal(samplesPerCode+1 : 2*samplesPerCode);
+signal1 = longSignal(1 : samplesPer1023Code);
+signal2 = longSignal(samplesPer1023Code+1 : 2*samplesPer1023Code);
 
 signal0DC = longSignal - mean(longSignal); 
 
 % Find sampling period
 ts = 1 / settings.samplingFreq;
 
-% Find phase points of the local carrier wave (2*pi*f/Fs*N)
-phasePoints = (0 : (samplesPerCode-1)) * 2 * pi * ts;
+% Find phase points of the local carrier wave (2*pi/Fs*N*(f))
+phasePoints = (0 : (samplesPer1023Code-1)) * 2 * pi * ts;
 
 % Number of the frequency bins for the given acquisition band (500Hz steps)
-numberOfFrqBins = round(settings.acqSearchBand * 2) + 1;
+numberOfFrqSearchBins = round(settings.acqSearchBand * 2) + 1;
 
 % Generate all C/A codes and sample them according to the sampling freq.
 caCodesTable = makeCaTable(settings);
@@ -71,10 +71,10 @@ caCodesTable = makeCaTable(settings);
 
 %--- Initialize arrays to speed up the code -------------------------------
 % Search results of all frequency bins and code shifts (for one satellite)
-results     = zeros(numberOfFrqBins, samplesPerCode);
+results     = zeros(numberOfFrqSearchBins, samplesPer1023Code);
 
 % Carrier frequencies of the frequency bins
-frqBins     = zeros(1, numberOfFrqBins);
+frqBins     = zeros(1, numberOfFrqSearchBins);
 
 
 %--- Initialize acqResults ------------------------------------------------
@@ -95,7 +95,7 @@ for PRN = settings.acqSatelliteList
     caCodeFreqDom = conj(fft(caCodesTable(PRN, :)));
 
     %--- Make the correlation for whole frequency band (for all freq. bins)
-    for frqBinIndex = 1:numberOfFrqBins
+    for frqBinIndex = 1:numberOfFrqSearchBins
 
         %--- Generate carrier wave frequency grid (0.5kHz step) -----------
         frqBins(frqBinIndex) = settings.IF - ...
@@ -133,7 +133,7 @@ for PRN = settings.acqSatelliteList
             results(frqBinIndex, :) = acqRes2;
         end
         
-    end % frqBinIndex = 1:numberOfFrqBins
+    end % frqBinIndex = 1:numberOfFrqSearchBins
 
 %% Look for correlation peaks in the results ==============================
     % Find the highest peak and compare it to the second highest peak
@@ -146,22 +146,22 @@ for PRN = settings.acqSatelliteList
     [peakSize codePhase] = max(max(results));
 
     %--- Find 1 chip wide C/A code phase exclude range around the peak ----
-    samplesPerCodeChip   = round(settings.samplingFreq / settings.codeFreqBasis);
-    excludeRangeIndex1 = codePhase - samplesPerCodeChip;
-    excludeRangeIndex2 = codePhase + samplesPerCodeChip;
+    samplesPer1023CodeChip   = round(settings.samplingFreq / settings.codeFreqBasis);
+    excludeRangeIndex1 = codePhase - samplesPer1023CodeChip;
+    excludeRangeIndex2 = codePhase + samplesPer1023CodeChip;
 
     %--- Correct C/A code phase exclude range if the range includes array
     %boundaries
     if excludeRangeIndex1 < 2
         codePhaseRange = excludeRangeIndex2 : ...
-                         (samplesPerCode + excludeRangeIndex1);
+                         (samplesPer1023Code + excludeRangeIndex1);
                          
-    elseif excludeRangeIndex2 >= samplesPerCode
-        codePhaseRange = (excludeRangeIndex2 - samplesPerCode) : ...
+    elseif excludeRangeIndex2 >= samplesPer1023Code
+        codePhaseRange = (excludeRangeIndex2 - samplesPer1023Code) : ...
                          excludeRangeIndex1;
     else
         codePhaseRange = [1:excludeRangeIndex1, ...
-                          excludeRangeIndex2 : samplesPerCode];
+                          excludeRangeIndex2 : samplesPer1023Code];
     end
 
     %--- Find the second highest correlation peak in the same freq. bin ---
@@ -181,7 +181,7 @@ for PRN = settings.acqSatelliteList
         %--- Generate 10msec long C/A codes sequence for given PRN --------
         caCode = generateCAcode(PRN);
         
-        codeValueIndex = floor((ts * (1:10*samplesPerCode)) / ...
+        codeValueIndex = floor((ts * (1:10*samplesPer1023Code)) / ...
                                (1/settings.codeFreqBasis));
                            
         longCaCode = caCode((rem(codeValueIndex, 1023) + 1));
@@ -189,7 +189,7 @@ for PRN = settings.acqSatelliteList
         %--- Remove C/A code modulation from the original signal ----------
         % (Using detected C/A code phase)
         xCarrier = ...
-            signal0DC(codePhase:(codePhase + 10*samplesPerCode-1)) ...
+            signal0DC(codePhase:(codePhase + 10*samplesPer1023Code-1)) ...
             .* longCaCode;
         
         %--- Find the next highest power of two and increase by 8x --------
