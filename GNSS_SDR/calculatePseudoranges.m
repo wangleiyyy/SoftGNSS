@@ -60,8 +60,15 @@ samplesPerCode = round(settings.samplingFreq / ...
 for channelNr = channelList
 
     %--- Compute the travel times -----------------------------------------    
-    travelTime(channelNr) = ...
-        trackResults(channelNr).absoluteSample(msOfTheSignal(channelNr)) / samplesPerCode;
+    %  absoluteSample--from the acquisition loop who is align with
+    %  codephase, it is recod the binary file id of 1ms period.
+    % msOfTheSignal-- the calculation of navigation step
+    % trackResults(channelNr).absoluteSample(msOfTheSignal(channelNr))--binary
+    % file id of the navigation tick which period is 1/fs.
+    % travelTime(channelNr) --relative travel time of the signal(start from recod)
+    
+    binaryIdofNavTick =  trackResults(channelNr).absoluteSample(msOfTheSignal(channelNr));
+    travelTime(channelNr) = binaryIdofNavTick / samplesPerCode;
 end
 
 %--- Truncate the travelTime and compute pseudoranges ---------------------
@@ -71,4 +78,4 @@ travelTime      = travelTime - minimum + settings.startOffset;
 %--- Convert travel time to a distance ------------------------------------
 % The speed of light must be converted from meters per second to meters
 % per millisecond. 
-pseudoranges    = travelTime * (settings.c / 1000);
+pseudoranges    = travelTime / 1000 * (settings.c );

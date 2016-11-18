@@ -69,6 +69,7 @@ for channelNr = activeChnList
     %=== Convert tracking output to navigation bits =======================
 
     %--- Copy 5 sub-frames long record from tracking output ---------------
+    %--5 sub-frames =1500*20= 5sub-frame*10word*30bit*20ms
     navBitsSamples = trackResults(channelNr).I_P(subFrameStart(channelNr) - 20 : ...
                                subFrameStart(channelNr) + (1500 * 20) -1)';
 
@@ -133,6 +134,7 @@ transmitTime = TOW;
 %##########################################################################
 
 %% Initialization of current measurement ==================================
+% it is periods of 500ms(for frequency of 2Hz) to calculate the navi pvt
 for currMeasNr = 1:fix((settings.msToProcess - max(subFrameStart)) / ...
                                                      settings.navSolPeriod)
 

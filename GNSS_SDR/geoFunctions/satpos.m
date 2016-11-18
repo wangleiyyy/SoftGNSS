@@ -62,28 +62,29 @@ for satNr = 1 : numOfSatellites
 
     time = transmitTime - satClkCorr(satNr);
 
-%% Find satellite's position ----------------------------------------------
+% Find satellite's position ----------------------------------------------
 
     %Restore semi-major axis
     a   = eph(prn).sqrtA * eph(prn).sqrtA;
-
-    %Time correction
-    tk  = check_t(time - eph(prn).t_oe);
-
+    %-----------------------n=sqrt(GM/a^3)+deltan------------------
     %Initial mean motion
     n0  = sqrt(GM / a^3);
     %Mean motion
     n   = n0 + eph(prn).deltan;
-
+    
+    %--------------------------- M = M0+n(t-t_oe)-------------
+    %Time correction
+    tk  = check_t(time - eph(prn).t_oe);
     %Mean anomaly
     M   = eph(prn).M_0 + n * tk;
     %Reduce mean anomaly to between 0 and 360 deg
     M   = rem(M + 2*gpsPi, 2*gpsPi);
 
+    %--------------------------E=M +e*sinE-----------------------
     %Initial guess of eccentric anomaly
     E   = M;
 
-    %--- Iteratively compute eccentric anomaly ----------------------------
+    %--- Iteratively compute eccentric anomaly 
     for ii = 1:10
         E_old   = E;
         E       = M + eph(prn).e * sin(E);
@@ -97,15 +98,24 @@ for satNr = 1 : numOfSatellites
 
     %Reduce eccentric anomaly to between 0 and 360 deg
     E   = rem(E + 2*gpsPi, 2*gpsPi);
-
+    
+    %-----------------dtr = F*e*sqrt(a)*sin(E)------------------
     %Compute relativistic correction term
     dtr = F * eph(prn).e * eph(prn).sqrtA * sin(E);
 
-    %Calculate the true anomaly
-    nu   = atan2(sqrt(1 - eph(prn).e^2) * sin(E), cos(E)-eph(prn).e);
+    % Include relativistic correction in clock correction --------------------
+    %-----------------deltt = af0+af1(dt)+af2*dt^2+dtr-T_GD------------------
+    satClkCorr(satNr) = (eph(prn).a_f2 * dt + eph(prn).a_f1) * dt + ...
+                         eph(prn).a_f0 - ...
+                         eph(prn).T_GD + dtr;
+    
+       
+    
+    %% Calculate the Satelite position
+    f   = atan2(sqrt(1 - eph(prn).e^2) * sin(E), cos(E)-eph(prn).e);
 
     %Compute angle phi
-    phi = nu + eph(prn).omega;
+    phi = f + eph(prn).omega;
     %Reduce phi to between 0 and 360 deg
     phi = rem(phi, 2*gpsPi);
 
@@ -134,9 +144,6 @@ for satNr = 1 : numOfSatellites
     satPositions(3, satNr) = sin(u)*r * sin(i);
 
 
-%% Include relativistic correction in clock correction --------------------
-    satClkCorr(satNr) = (eph(prn).a_f2 * dt + eph(prn).a_f1) * dt + ...
-                         eph(prn).a_f0 - ...
-                         eph(prn).T_GD + dtr;
+
                      
 end % for satNr = 1 : numOfSatellites

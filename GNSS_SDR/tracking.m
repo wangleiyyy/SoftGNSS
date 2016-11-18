@@ -272,8 +272,13 @@ for channelNr = 1:settings.numberOfChannels
 
 %% Record various measures to show in postprocessing ----------------------
             % Record sample number (based on 8bit samples)
+            % After Acqing ,We get the CodePhase. Use the Binary data to
+            % align the CodePhase,We get the absoluteSample(file index) for the
+            % frequency of 1ms. 
+            %Tracking loop use this step to integration the I/Q. This step will be used 
+            %for the caculation of navigation.
             trackResults(channelNr).absoluteSample(loopCnt) = ftell(fid);
-
+            
             trackResults(channelNr).dllDiscr(loopCnt)       = codeError;
             trackResults(channelNr).dllDiscrFilt(loopCnt)   = codeNco;
             trackResults(channelNr).pllDiscr(loopCnt)       = carrError;
